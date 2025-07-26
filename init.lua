@@ -246,6 +246,12 @@ vim.opt.rtp:prepend(lazypath)
 -- ===== BASIC SETTINGS =====
 vim.opt.mouse = "a"
 vim.opt.clipboard = "unnamed,unnamedplus"
+
+-- Disable optional providers to avoid health check warnings
+vim.g.loaded_node_provider = 0
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
 -- Use default Neovim clipboard (no custom keymaps)
 -- Clipboard is enabled with: vim.opt.clipboard = "unnamed,unnamedplus"
 vim.opt.termguicolors = true
@@ -507,6 +513,42 @@ require("lazy").setup({
   -- Essential UI
   { "nvim-tree/nvim-web-devicons", lazy = true },
   { "MunifTanjim/nui.nvim", lazy = true },
+  { "echasnovski/mini.icons", lazy = true },
+  
+  -- Which-key for better keymap discovery
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    config = function()
+      require("which-key").setup({
+        plugins = {
+          marks = true,
+          registers = true,
+          spelling = {
+            enabled = true,
+            suggestions = 20,
+          },
+        },
+        icons = {
+          breadcrumb = "»",
+          separator = "➜",
+          group = "+",
+        },
+        win = {
+          border = "rounded",
+          position = "bottom",
+          margin = { 1, 0, 1, 0 },
+          padding = { 2, 2, 2, 2 },
+        },
+        layout = {
+          height = { min = 4, max = 25 },
+          width = { min = 20, max = 50 },
+          spacing = 3,
+          align = "left",
+        },
+      })
+    end
+  },
   
   {
     "nvim-lualine/lualine.nvim",
@@ -1055,7 +1097,7 @@ require("lazy").setup({
   {
     "folke/snacks.nvim",
     lazy = false,
-    priority = 900, -- Load before Claude Code
+    priority = 1000, -- Fixed: Increased priority to 1000
     config = function()
       require("snacks").setup({
         -- Terminal configuration for Claude Code compatibility
@@ -1068,6 +1110,8 @@ require("lazy").setup({
         image = { 
           enabled = true, -- Enable image features for kitty/wezterm
           fallback_to_text = true, -- Fallback to text if not supported
+          -- Use magick instead of deprecated convert command
+          magick_command = "magick",
         },
         -- Enable only essential features
         bigfile = { enabled = true },
@@ -1076,12 +1120,28 @@ require("lazy").setup({
         statuscolumn = { enabled = true },
         words = { enabled = true },
         input = { enabled = true }, -- Enable input functionality
+        picker = { enabled = true }, -- Enable picker functionality
+        dashboard = { enabled = false }, -- Disable dashboard to avoid setup errors
+        explorer = { enabled = true }, -- Enable explorer
+        scope = { enabled = true }, -- Enable scope
+        scroll = { enabled = true }, -- Enable scroll
         -- Window handling optimized for Claude Code
         win = {
           backdrop = false,
           keys = { q = "close" },
         },
       })
+      
+      -- Set up Snacks UI handlers with defer to ensure plugin is loaded
+      vim.defer_fn(function()
+        local snacks = require("snacks")
+        if snacks and snacks.input and snacks.picker then
+          vim.ui.input = snacks.input.input
+          vim.ui.select = snacks.picker.select
+        end
+        
+
+      end, 100)
     end
   },
 
@@ -1872,6 +1932,8 @@ end
 TokenOptimizer.init()
 
 -- ===== STARTUP NOTIFICATION (UPDATED) =====
+
+
 vim.api.nvim_create_autocmd("VimEnter", {
   group = augroup,
   callback = function()
@@ -1880,6 +1942,15 @@ vim.api.nvim_create_autocmd("VimEnter", {
         title = "🚀 AI-Powered System Ready",
         timeout = 2000
       })
+      
+      -- Check Snacks UI handlers
+      vim.defer_fn(function()
+        if vim.ui.input and vim.ui.select then
+          vim.notify("✅ Snacks UI handlers configured successfully", "info", { timeout = 1000 })
+        else
+          vim.notify("⚠️ Snacks UI handlers not configured - some features may not work", "warn", { timeout = 2000 })
+        end
+      end, 500)
       
       -- Check if Claude CLI is available
       vim.defer_fn(function()
