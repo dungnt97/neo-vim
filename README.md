@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-A powerful, AI-enhanced Neovim configuration featuring **Claude 4 Sonnet**, **ChatGPT**, **GitHub Copilot**, and the beautiful **Catppuccin Mocha** theme. Built for maximum productivity with cost optimization and modern development workflows.
+A powerful, AI-enhanced Neovim configuration featuring **Claude 4 Sonnet**, **ChatGPT**, **GitHub Copilot**, and the beautiful **Catppuccin Mocha** theme. Built for maximum productivity with cost optimization, auto-formatting, and session management.
 
 ## 🤖 AI-Powered Features
 
@@ -57,6 +57,7 @@ A powerful, AI-enhanced Neovim configuration featuring **Claude 4 Sonnet**, **Ch
 - **Quick Access Buttons**: File operations, AI tools, configuration
 - **Welcome Animation**: Enhanced startup experience
 - **Custom Highlights**: Optimized for Catppuccin theme
+- **Fixed Size**: No scrolling issues, stable layout
 
 ### 📊 Status & Notifications
 
@@ -99,6 +100,28 @@ A powerful, AI-enhanced Neovim configuration featuring **Claude 4 Sonnet**, **Ch
 - **Autopairs**: Auto bracket pairing
 - **Comment**: `<leader>/` - Toggle comments
 - **ToggleTerm**: `<C-\>` - Toggle terminal
+
+## 📝 Code Formatting & Session Management
+
+### 🎨 Conform.nvim (Auto Formatting)
+
+- **Auto Format on Save**: Automatically format code when saving
+- **Manual Format**: `<leader>f` - Format current buffer
+- **Format Entire File**: `<leader>fF` - Format whole file
+- **Supported Languages**: Python (black), JS/TS (prettier), Lua (stylua), Rust (rustfmt), Go (gofmt), Ruby, PHP, SQL
+- **LSP Fallback**: Uses LSP formatting if external formatter unavailable
+- **Configurable**: Custom formatter settings for each language
+
+### 💾 Persisted.nvim (Session Management)
+
+- **Auto Save Session**: Automatically save workspace when quitting
+- **Manual Save**: `<leader>ss` - Save current session
+- **Load Session**: `<leader>sl` - Load saved session
+- **Delete Session**: `<leader>sd` - Delete session
+- **Stop Session**: `<leader>st` - Stop session
+- **Quick Save & Quit**: `<leader>qq` - Save session and quit all
+- **Git Branch Aware**: Separate sessions for different branches
+- **Workspace Restoration**: Restore files, windows, tabs, and layout
 
 ## 🌿 Git Integration
 
@@ -203,7 +226,26 @@ export ANTHROPIC_API_KEY="your-anthropic-key-here"
 source ~/.zshrc
 ```
 
-### 5. Start Neovim
+### 5. Install Formatters (Optional but Recommended)
+
+```bash
+# Python
+pip install black isort
+
+# JavaScript/TypeScript
+npm install -g prettier prettierd
+
+# Lua
+brew install stylua
+
+# Rust
+rustup component add rustfmt
+
+# Go
+go install golang.org/x/tools/cmd/goimports
+```
+
+### 6. Start Neovim
 
 ```bash
 nvim
@@ -273,6 +315,18 @@ nvim
 | `<leader>/`  | Comment     | Toggle comment      |
 | `<C-\>`      | Terminal    | Toggle terminal     |
 
+### 🎨 Formatting & Sessions
+
+| Key          | Action         | Description           |
+| ------------ | -------------- | --------------------- |
+| `<leader>f`  | Format         | Format buffer         |
+| `<leader>fF` | Format File    | Format entire file    |
+| `<leader>ss` | Save Session   | Save current session  |
+| `<leader>sl` | Load Session   | Load saved session    |
+| `<leader>sd` | Delete Session | Delete session        |
+| `<leader>st` | Stop Session   | Stop session          |
+| `<leader>qq` | Save & Quit    | Save session and quit |
+
 ### 🪟 Window Management
 
 | Key                | Action   | Description      |
@@ -294,14 +348,15 @@ nvim
 
 ### 🔧 Utilities
 
-| Key          | Action     | Description         |
-| ------------ | ---------- | ------------------- |
-| `<leader>?`  | Help       | Show main help      |
-| `<leader>ch` | Health     | Check health        |
-| `<leader>so` | Source     | Source current file |
-| `<leader>qq` | Quit All   | Quit all windows    |
-| `<leader>w`  | Save       | Save current file   |
-| `<leader>sa` | Select All | Select all text     |
+| Key           | Action     | Description                 |
+| ------------- | ---------- | --------------------------- |
+| `<leader>?`   | Help       | Show main help              |
+| `<leader>ch`  | Health     | Check health                |
+| `<leader>so`  | Source     | Source current file         |
+| `<leader>qq`  | Quit All   | Save session & quit         |
+| `<leader>w`   | Save       | Save current file           |
+| `<leader>sa`  | Select All | Select all text             |
+| `<leader>syn` | Syntax     | Refresh syntax highlighting |
 
 ## 🔧 Troubleshooting
 
@@ -339,7 +394,24 @@ nvim
    # Install required language servers
    ```
 
-5. **Performance issues**
+5. **Formatting not working**
+
+   ```bash
+   # Install formatters
+   pip install black isort
+   npm install -g prettier prettierd
+   brew install stylua
+   ```
+
+6. **Syntax highlighting issues**
+
+   ```vim
+   <leader>syn  # Refresh syntax highlighting
+   :TSUpdate    # Update treesitter parsers
+   :TSInstall ruby  # Install specific parser
+   ```
+
+7. **Performance issues**
    - Check for large files
    - Monitor token usage with `<leader>at`
    - Clear cache with `<leader>acache`
@@ -350,21 +422,26 @@ nvim
 :checkhealth
 :checkhealth lazy
 :checkhealth mason
+:checkhealth nvim-treesitter
+:checkhealth conform
 ```
 
 ## 📚 Supported Languages
 
 - **Lua** - Full LSP support with lua_ls
-- **Python** - Pyright LSP with type checking
-- **JavaScript/TypeScript** - tsserver with full support
-- **Rust** - rust-analyzer with cargo integration
-- **Go** - gopls with Go modules
+- **Python** - Pyright LSP with type checking, black/isort formatting
+- **JavaScript/TypeScript** - tsserver with full support, prettier formatting
+- **Rust** - rust-analyzer with cargo integration, rustfmt formatting
+- **Go** - gopls with Go modules, gofmt formatting
 - **Java** - jdtls with Maven/Gradle
 - **C/C++** - clangd with compilation database
-- **HTML/CSS** - Built-in LSPs with validation
-- **JSON/YAML** - Built-in LSPs with schema validation
-- **Markdown** - Treesitter with enhanced highlighting
-- **Bash** - Treesitter with shell integration
+- **HTML/CSS** - Built-in LSPs with validation, prettier formatting
+- **JSON/YAML** - Built-in LSPs with schema validation, prettier formatting
+- **Markdown** - Treesitter with enhanced highlighting, prettier formatting
+- **Bash** - Treesitter with shell integration, shfmt formatting
+- **Ruby** - Treesitter with syntax highlighting
+- **PHP** - Treesitter with syntax highlighting
+- **SQL** - Treesitter with syntax highlighting
 
 ## 🎉 Features Highlights
 
@@ -381,13 +458,23 @@ nvim
 - **Epic Dashboard**: Stunning startup screen with quick access
 - **Enhanced Notifications**: Beautiful, informative notifications
 - **Responsive Design**: Optimized for different screen sizes
+- **Fixed Layout**: Stable dashboard without scrolling issues
 
 ### 🔧 Developer Experience
 
-- **Auto-formatting**: Format on save for clean code
+- **Auto-formatting**: Format on save for clean, consistent code
+- **Session Management**: Persistent workspace across sessions
 - **Git Integration**: Complete Git workflow with vim-fugitive
 - **LSP Support**: Full language server integration
 - **Terminal Integration**: Seamless terminal access
+- **Syntax Highlighting**: Enhanced code coloring with Treesitter
+
+### 💾 Workspace Persistence
+
+- **Auto-save Sessions**: Never lose your workspace
+- **Git Branch Aware**: Separate sessions per branch
+- **Quick Save & Quit**: One key to save and exit
+- **Workspace Restoration**: Restore files, windows, and layout
 
 ## 🆘 Support & Help
 
@@ -400,6 +487,7 @@ nvim
 - `<leader>theme` - Theme information
 - `<leader>tree` - Neo-tree keymaps
 - `<leader>window` - Window navigation guide
+- `<leader>features` - Enhanced features info
 
 ### External Resources
 
@@ -409,6 +497,8 @@ nvim
 - **ChatGPT.nvim**: https://github.com/jackMort/ChatGPT.nvim
 - **Claude Code**: https://github.com/coder/claudecode.nvim
 - **Avante**: https://github.com/yetone/avante.nvim
+- **Conform.nvim**: https://github.com/stevearc/conform.nvim
+- **Persisted.nvim**: https://github.com/olimorris/persisted.nvim
 
 ---
 
