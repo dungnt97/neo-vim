@@ -247,12 +247,11 @@ return {
     },
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
-      "stevearc/dressing.nvim",
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",
       --- The below dependencies are optional,
-      "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-      "zbirenbaum/copilot.lua", -- for providers='copilot'
+              -- nvim-web-devicons is configured separately in ui.lua
+        -- copilot.lua is configured separately
       {
         -- support for image pasting (FIXED)
         "HakonHarnes/img-clip.nvim",
@@ -381,5 +380,108 @@ return {
       vim.g.copilot_assume_mapped = true
       vim.g.copilot_tab_fallback = ""
     end
+  },
+
+  -- Copilot.lua (Alternative Copilot implementation)
+  {
+    "zbirenbaum/copilot.lua",
+    event = "InsertEnter",
+    config = function()
+      require("copilot").setup({
+        panel = {
+          enabled = false, -- Disable panel to avoid conflicts with copilot.vim
+        },
+        suggestion = {
+          enabled = false, -- Disable suggestions to avoid conflicts with copilot.vim
+        },
+        filetypes = {
+          markdown = true,
+          help = true,
+        },
+      })
+    end,
+  },
+
+  -- Dressing.nvim (UI enhancements)
+  {
+    "stevearc/dressing.nvim",
+    lazy = false,
+    config = function()
+      require("dressing").setup({
+        input = {
+          enabled = true,
+          default_prompt = "Input:",
+          trim_prompt = true,
+          title_pos = "left",
+          relative = "cursor",
+          prefer_width = 40,
+          width = nil,
+          max_width = { 140, 0.9 },
+          min_width = { 20, 0.2 },
+          buf_options = {},
+          win_options = {
+            winblend = 10,
+            wrap = false,
+            list = true,
+            listchars = "precedes:…,extends:…",
+            sidescrolloff = 0,
+          },
+          mappings = {
+            n = {
+              ["<CR>"] = "Confirm",
+              ["<C-c>"] = "Cancel",
+              ["<C-]>"] = "Show Help",
+            },
+            i = {
+              ["<C-c>"] = "Cancel",
+              ["<CR>"] = "Confirm",
+              ["<C-]>"] = "Show Help",
+            },
+          },
+        },
+        select = {
+          enabled = true,
+          backend = { "telescope", "fzf_lua", "fzf", "builtin", "nui" },
+          trim_prompt = true,
+          telescope = nil,
+          fzf = {
+            window = {
+              width = 0.5,
+              height = 0.4,
+            },
+          },
+          fzf_lua = {
+            winopts = {
+              width = 0.5,
+              height = 0.4,
+            },
+          },
+          nui = {
+            position = "50%",
+            size = nil,
+            relative = "editor",
+            border = {
+              style = "rounded",
+            },
+            max_width = 80,
+            max_height = 40,
+          },
+          builtin = {
+            relative = "editor",
+            border = "rounded",
+            max_width = { 140, 0.8 },
+            max_height = { 25, 0.8 },
+            min_width = { 40, 0.2 },
+            min_height = { 10, 0.2 },
+            width = nil,
+            height = nil,
+            row = nil,
+            col = nil,
+            title = nil,
+            title_pos = "center",
+          },
+        },
+      })
+    end,
   },
 } 

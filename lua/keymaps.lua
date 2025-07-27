@@ -13,23 +13,22 @@ local function setup_keymaps()
       ["<leader>tree"] = { "<leader>tree", "Show Neo-tree help" },
     },
 
-    -- Git operations (UPDATED with vim-fugitive)
+    -- Git operations (UPDATED with diffview.nvim)
     git = {
-      ["<leader>gs"] = { "<cmd>Git<CR>", "Git status" },
-      ["<leader>gd"] = { "<cmd>Gdiff<CR>", "Git diff" },
-      ["<leader>gb"] = { "<cmd>Gblame<CR>", "Git blame" },
-      ["<leader>gl"] = { "<cmd>Glog<CR>", "Git log" },
-      ["<leader>gg"] = { "<cmd>Ggrep<CR>", "Git grep" },
-      ["<leader>gc"] = { "<cmd>Git commit<CR>", "Git commit" },
-      ["<leader>gp"] = { "<cmd>Git push<CR>", "Git push" },
-      ["<leader>gf"] = { "<cmd>Git fetch<CR>", "Git fetch" },
-      ["<leader>gm"] = { "<cmd>Git merge<CR>", "Git merge" },
-      ["<leader>gr"] = { "<cmd>Git rebase<CR>", "Git rebase" },
-      ["<leader>ga"] = { "<cmd>Git add %<CR>", "Git add current file" },
-      ["<leader>gaa"] = { "<cmd>Git add .<CR>", "Git add all" },
-      ["<leader>gw"] = { "<cmd>Gwrite<CR>", "Git write (add and stage)" },
-      ["<leader>gr"] = { "<cmd>Gread<CR>", "Git read (checkout)" },
-      ["<leader>gbrowse"] = { "<cmd>GBrowse<CR>", "Git browse" },
+      ["<leader>gs"] = { "<cmd>DiffviewOpen<CR>", "Git status (diffview)" },
+      ["<leader>gd"] = { "<cmd>DiffviewOpen<CR>", "Git diff (diffview)" },
+      ["<leader>gb"] = { "<cmd>Terminal git blame %<CR>", "Git blame" },
+      ["<leader>gl"] = { "<cmd>Terminal git log --oneline<CR>", "Git log" },
+      ["<leader>gg"] = { "<cmd>Terminal git grep<CR>", "Git grep" },
+      ["<leader>gc"] = { "<cmd>Terminal git commit<CR>", "Git commit" },
+      ["<leader>gp"] = { "<cmd>Terminal git push<CR>", "Git push" },
+      ["<leader>gf"] = { "<cmd>Terminal git fetch<CR>", "Git fetch" },
+      ["<leader>gm"] = { "<cmd>Terminal git merge<CR>", "Git merge" },
+      ["<leader>gr"] = { "<cmd>Terminal git rebase<CR>", "Git rebase" },
+      ["<leader>ga"] = { "<cmd>Terminal git add %<CR>", "Git add current file" },
+      ["<leader>gaa"] = { "<cmd>Terminal git add .<CR>", "Git add all" },
+      ["<leader>gh"] = { "<cmd>DiffviewFileHistory<CR>", "File history" },
+      ["<leader>ghc"] = { "<cmd>DiffviewFileHistory %<CR>", "Current file history" },
     },
 
     -- LSP operations (fixed conflicts)

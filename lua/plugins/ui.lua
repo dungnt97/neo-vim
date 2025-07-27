@@ -1,5 +1,26 @@
 -- UI Plugins Configuration
 return {
+  -- Icons
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = false,
+    config = function()
+      require("nvim-web-devicons").setup({
+        default = true,
+        strict = true,
+        override = {
+          git = {
+            icon = " ",
+            color = "#f14c28",
+            name = "Git",
+          },
+        },
+        color_icons = true,
+        default_set = true,
+      })
+    end,
+  },
+
   -- UI & Theme - Catppuccin (Beautiful & Customizable)
   {
     "catppuccin/nvim",
@@ -259,9 +280,19 @@ return {
   },
 
   -- Essential UI
-  { "nvim-tree/nvim-web-devicons", lazy = true },
   { "MunifTanjim/nui.nvim", lazy = true },
-  { "echasnovski/mini.icons", lazy = true },
+  
+  -- Mini.icons (Alternative to nvim-web-devicons)
+  {
+    "echasnovski/mini.icons",
+    lazy = true,
+    config = function()
+      require("mini.icons").setup({
+        -- Use nvim-web-devicons as primary, mini.icons as fallback
+        enabled = true,
+      })
+    end,
+  },
   
   -- Which-key for better keymap discovery
   {

@@ -7,7 +7,7 @@ function M.show_help()
     "🎯 DUNGNT's AI-POWERED KEYMAPS (CLAUDE 4 EDITION)",
     "",
     "📁 FILES: <leader>e(toggle) eg(git) ef(focus) ec(close) tree(help)",
-    "🌿 GIT: <leader>gs(status) gd(diff) gl(log) ga(add) gc(commit) gp(push)",
+    "🌿 GIT: <leader>gs(status) gd(diff) gl(log) ga(add) gc(commit) gp(push) gh(history)",
     "🔍 SEARCH: <leader>ff(files) fg(grep) fb(buffers) fr(recent)",
     "💻 LSP: <leader>lf(format) la(action) ld(diag) lr(rename) lh(hover)",
     "📋 EDIT: <leader>sa(select all)",

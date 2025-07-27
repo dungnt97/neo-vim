@@ -6,7 +6,7 @@ return {
     branch = "v3.x",
     cmd = "Neotree",
     keys = { { "<leader>e", ":Neotree toggle<CR>", desc = "Toggle file tree" } },
-    dependencies = { "nvim-lua/plenary.nvim", "nvim-tree/nvim-web-devicons", "MunifTanjim/nui.nvim" },
+    dependencies = { "nvim-lua/plenary.nvim", "MunifTanjim/nui.nvim" },
     config = function()
       require("neo-tree").setup({
         window = { 
@@ -160,7 +160,6 @@ return {
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
-      "L3MON4D3/LuaSnip",
       "saadparwaiz1/cmp_luasnip"
     },
     config = function()
@@ -178,6 +177,18 @@ return {
     end
   },
 
+  -- Snippets
+  {
+    "L3MON4D3/LuaSnip",
+    event = "InsertEnter",
+    config = function()
+      require("luasnip").setup({
+        region_check_events = "InsertEnter",
+        delete_check_events = "TextChanged,InsertLeave",
+      })
+    end,
+  },
+
   -- Essential utilities
   {
     "windwp/nvim-autopairs",
@@ -193,7 +204,7 @@ return {
 
   {
     "akinsho/toggleterm.nvim",
-    keys = { { "<C-\\>", desc = "Toggle terminal" } },
+    keys = { { "<C-\\>", "<cmd>ToggleTerm<CR>", desc = "Toggle terminal" } },
     cmd = "ToggleTerm",
     config = function()
       require("toggleterm").setup({
