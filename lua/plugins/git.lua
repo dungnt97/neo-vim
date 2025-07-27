@@ -116,6 +116,19 @@ return {
               :format(view.class:name(), view.tabpage)
             )
           end,
+          file_panel_buf_read = function(bufnr)
+            -- Force override Enter key in file panel
+            vim.keymap.set('n', '<CR>', function()
+              local actions = require("diffview.actions")
+              actions.select_entry()
+            end, { buffer = bufnr, desc = "Select file in diffview", noremap = true, silent = true })
+            
+            -- Also map Enter in insert mode
+            vim.keymap.set('i', '<CR>', function()
+              local actions = require("diffview.actions")
+              actions.select_entry()
+            end, { buffer = bufnr, desc = "Select file in diffview", noremap = true, silent = true })
+          end,
         },
         keymaps = {
           disable_defaults = true, -- Disable defaults to avoid conflicts
@@ -140,6 +153,7 @@ return {
             ["<up>"] = actions.prev_entry,
             ["<cr>"] = actions.select_entry, -- ENTER key to select file
             ["<Enter>"] = actions.select_entry, -- Alternative ENTER mapping
+            ["<Return>"] = actions.select_entry, -- Another ENTER mapping
             ["o"] = actions.select_entry,
             ["l"] = actions.select_entry,
             ["<2-LeftMouse>"] = actions.select_entry,
