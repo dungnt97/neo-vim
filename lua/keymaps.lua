@@ -33,8 +33,8 @@ local function setup_keymaps()
 
     -- LSP operations (fixed conflicts)
     lsp = {
-      ["<leader>lf"] = { vim.lsp.buf.format, "Format buffer" },
-      ["<leader>la"] = { vim.lsp.buf.code_action, "Code action" }, -- Changed from <leader>ca
+      ["<leader>lf"] = { function() require("conform").format({ async = true, lsp_fallback = true }) end, "Format buffer" },
+      ["<leader>la"] = { vim.lsp.buf.code_action, "Code action" },
       ["<leader>ld"] = { vim.diagnostic.open_float, "Show diagnostics" },
       ["<leader>lr"] = { vim.lsp.buf.rename, "Rename symbol" },
       ["<leader>lh"] = { vim.lsp.buf.hover, "Hover documentation" },
@@ -44,14 +44,17 @@ local function setup_keymaps()
     ai = {
       ["<leader>ag"] = { "<cmd>ChatGPT<CR>", "Open ChatGPT" },
       ["<leader>ae"] = { "<cmd>ChatGPTEditWithInstructions<CR>", "Edit with ChatGPT" },
-      ["<leader>aa"] = { "<cmd>ChatGPTActAs<CR>", "ChatGPT Act As" },
+      ["<leader>act"] = { "<cmd>ChatGPTActAs<CR>", "ChatGPT Act As" },  -- Changed to 3 letters
       ["<leader>ac"] = { "<cmd>ClaudeCode<CR>", "Toggle Claude Code" },
       ["<leader>af"] = { "<cmd>ClaudeCodeFocus<CR>", "Focus Claude Code" },
       ["<leader>ar"] = { "<cmd>ClaudeCode --resume<CR>", "Resume Claude Code" },
-      ["<leader>aC"] = { "<cmd>ClaudeCode --continue<CR>", "Continue Claude Code" },
+      ["<leader>aco"] = { "<cmd>ClaudeCode --continue<CR>", "Continue Claude Code" },  -- Changed to 3 letters
+      ["<leader>am"] = { "<cmd>ClaudeCodeSelectModel<CR>", "Select Claude model" },
       ["<leader>ab"] = { "<cmd>ClaudeCodeAdd %<CR>", "Add current buffer to Claude" },
-      ["<leader>aA"] = { "<cmd>ClaudeCodeDiffAccept<CR>", "Accept Claude diff" },
-      ["<leader>aD"] = { "<cmd>ClaudeCodeDiffDeny<CR>", "Deny Claude diff" },
+      ["<leader>as"] = { "<cmd>ClaudeCodeSend<CR>", "Send to Claude" },
+      ["<leader>atr"] = { "<cmd>ClaudeCodeTreeAdd<CR>", "Add file to Claude" },  -- Changed to 3 letters (tree)
+      ["<leader>aac"] = { "<cmd>ClaudeCodeDiffAccept<CR>", "Accept Claude diff" },  -- Changed to 3 letters
+      ["<leader>ad"] = { "<cmd>ClaudeCodeDiffDeny<CR>", "Deny Claude diff" },
     },
 
     -- Search operations
@@ -62,10 +65,10 @@ local function setup_keymaps()
       ["<leader>fr"] = { "<cmd>Telescope oldfiles<CR>", "Recent files" },
     },
 
-    -- Formatting operations
+    -- Formatting operations (changed from <leader>f to <leader>lf to avoid conflicts)
     format = {
-      ["<leader>f"] = { function() require("conform").format({ async = true, lsp_fallback = true }) end, "Format buffer" },
-      ["<leader>fF"] = { function() require("conform").format({ async = true, lsp_fallback = true, range = { start = 1, ["end"] = vim.api.nvim_buf_line_count(0) } }) end, "Format entire file" },
+      -- Removed <leader>f to avoid conflict with <leader>ff (find files)
+      -- Use <leader>lf instead (in LSP section)
     },
 
     -- Session operations
@@ -131,7 +134,7 @@ local function setup_keymaps()
   vim.keymap.set("v", "<leader>ae", "<cmd>ChatGPTEditWithInstructions<CR>", { desc = "Edit selection with ChatGPT" })
   vim.keymap.set("v", "<leader>as", "<cmd>ClaudeCodeSend<CR>", { desc = "Send selection to Claude Code" })
   vim.keymap.set("v", "<leader>ave", function() require("avante.api").edit() end, { desc = "Edit selection with Avante" })
-
+  
   -- Claude Code status check
   vim.keymap.set("n", "<leader>cs", "<cmd>ClaudeCodeStatus<CR>", { desc = "Check Claude Code status" })
 
@@ -140,13 +143,13 @@ local function setup_keymaps()
     vim.notify("🧹 Contexts cleared!", "info", { position = "bottom_right" })
   end, { desc = "Clear AI contexts" })
 
-  -- Token optimizer keymaps
-  vim.keymap.set("n", "<leader>at", function() TokenOptimizer.show_usage() end, { desc = "Show token usage" })
-  vim.keymap.set("n", "<leader>acache", function() TokenOptimizer.clear_cache() end, { desc = "Clear prompt cache" })
-  vim.keymap.set("n", "<leader>ao", function() TokenOptimizer.optimize_settings() end, { desc = "Show optimization settings" })
+  -- Token optimizer keymaps (use 3 letters to avoid conflicts)
+  vim.keymap.set("n", "<leader>atu", function() TokenOptimizer.show_usage() end, { desc = "Show token usage" })
+  vim.keymap.set("n", "<leader>atc", function() TokenOptimizer.clear_cache() end, { desc = "Clear prompt cache" })
+  vim.keymap.set("n", "<leader>ato", function() TokenOptimizer.optimize_settings() end, { desc = "Show optimization settings" })
 
-  -- Manual Claude Code tracking (OPTIMIZED)
-  vim.keymap.set("n", "<leader>act", function()
+  -- Manual Claude Code tracking (OPTIMIZED) - changed to avoid conflict with ChatGPT Act As
+  vim.keymap.set("n", "<leader>att", function()
     if TokenOptimizer then
       -- Use optimized token estimates based on new settings
       local estimated_input = 400  -- Reduced due to max_context_files = 20
@@ -170,8 +173,8 @@ local function setup_keymaps()
   -- ===== ADDITIONAL UTILITY KEYMAPS =====
   vim.keymap.set("n", "<leader>ch", ":checkhealth<CR>", { desc = "Check health" })
   vim.keymap.set("n", "<leader>so", ":source %<CR>", { desc = "Source current file" })
-  vim.keymap.set("n", "<leader>qq", ":qa<CR>", { desc = "Quit all" })
-  vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
+  -- Removed <leader>qq (already defined in session group)
+  vim.keymap.set("n", "<leader>ww", ":w<CR>", { desc = "Save file" })  -- Changed from <leader>w to <leader>ww
   vim.keymap.set("n", "<leader>fix", ":source ~/.config/nvim/fix_catppuccin.lua<CR>", { desc = "Fix Catppuccin" })
   vim.keymap.set("n", "<leader>syn", function()
     vim.cmd("syntax on")

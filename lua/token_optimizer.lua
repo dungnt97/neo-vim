@@ -17,6 +17,10 @@ local COSTS = {
   gpt4 = {
     input = 30,   -- $30 per million input tokens
     output = 60,  -- $60 per million output tokens
+  },
+  copilot = {
+    input = 0,    -- Copilot doesn't charge for input
+    output = 10,  -- $10 per million output tokens (estimated)
   }
 }
 
@@ -126,8 +130,9 @@ function M.show_usage()
     "",
     "🤖 INTEGRATED AI TOOLS:",
     "   ✅ ChatGPT (GPT-4) - Auto tracking",
-    "   ✅ Avante (Claude 4 Sonnet) - Auto tracking",
+    "   ✅ Avante (Claude 4 Sonnet) - Auto tracking", 
     "   ✅ Claude Code - Auto tracking (optimized)",
+    "   ✅ GitHub Copilot - Auto tracking",
     "",
     "💰 Cost Optimization Tips:",
     "   • Use prompt caching (saves 90% input tokens)",

@@ -3,6 +3,63 @@ vim.loader.enable() -- Enable Lua module caching for faster startup
 vim.g.loaded_netrw = 1 -- Disable netrw
 vim.g.loaded_netrwPlugin = 1
 
+-- Set log level to ERROR to suppress warnings
+vim.lsp.log.set_level("ERROR")
+
+-- Override print to suppress warning messages during startup
+local original_print = print
+local startup_complete = false
+print = function(...)
+  local args = {...}
+  local msg = table.concat(vim.tbl_map(tostring, args), " ")
+
+  -- Filter out warning messages
+  if msg:match("WARNING") or
+     msg:match("checking for overlapping") or
+     msg:match("overlaps with") or
+     msg:match("lua version") or
+     msg:match("Lua.*needed") or
+     msg:match("cmp%.entry%.get_documentation") or
+     msg:match("Snacks%.dashboard") or
+     msg:match("setup.*disabled") then
+    return
+  end
+
+  original_print(...)
+end
+
+-- Restore print after startup
+vim.defer_fn(function()
+  startup_complete = true
+  print = original_print
+end, 3000)
+
+-- Suppress lspconfig deprecation warnings and overlapping keymap warnings
+local original_notify = vim.notify
+vim.notify = function(msg, level, opts)
+  if type(msg) == "string" and (
+    msg:match("lspconfig") and msg:match("deprecated") or
+    msg:match("require.*lspconfig.*framework") or
+    msg:match("WARNING.*overlaps") or
+    msg:match("overlaps with") or
+    msg:match("checking for overlapping keymaps") or
+    msg:match("Overlapping keymaps") or
+    msg:lower():match("warning.*mode.*overlaps")
+  ) then
+    return
+  end
+  original_notify(msg, level, opts)
+end
+
+-- Also suppress vim.deprecate warnings
+local original_deprecate = vim.deprecate
+vim.deprecate = function(name, alternative, version, plugin, backtrace)
+  if name and (name:match("lspconfig") or plugin and plugin:match("lspconfig")) then
+    return
+  end
+  original_deprecate(name, alternative, version, plugin, backtrace)
+end
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then  
@@ -123,9 +180,14 @@ vim.api.nvim_create_autocmd("BufEnter", {
 vim.api.nvim_create_autocmd("VimEnter", {
   group = augroup,
   callback = function()
+    -- Clear any startup warnings from the screen
+    vim.defer_fn(function()
+      vim.cmd('redraw')
+    end, 50)
+
     vim.defer_fn(function()
       vim.schedule(function()
-        vim.api.nvim_notify("⚡ DUNGNT's Ultimate Neovim Ready! (Claude 4 + Catppuccin)", vim.log.levels.INFO, { 
+        vim.api.nvim_notify("⚡ DUNGNT's Ultimate Neovim Ready! (Claude 4 + Catppuccin)", vim.log.levels.INFO, {
           title = "🚀 AI-Powered System Ready",
           timeout = 2000,
           position = "bottom_right"

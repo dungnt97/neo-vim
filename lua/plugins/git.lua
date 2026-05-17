@@ -109,29 +109,42 @@ return {
             vim.opt_local.wrap = false
             vim.opt_local.list = false
             vim.opt_local.colorcolumn = { 80 }
+
+            -- Enable syntax highlighting for diff buffers
+            vim.schedule(function()
+              if vim.api.nvim_buf_is_valid(bufnr) then
+                vim.cmd("syntax on")
+                vim.cmd("syntax sync fromstart")
+
+                -- Detect and set proper filetype
+                local filetype = vim.filetype.match({ buf = bufnr })
+                if filetype and filetype ~= "" then
+                  vim.bo[bufnr].filetype = filetype
+
+                  -- Enable treesitter highlighting if available
+                  pcall(function()
+                    require("nvim-treesitter.highlight").attach(bufnr, filetype)
+                  end)
+                end
+              end
+            end)
           end,
           view_opened = function(view)
-            print(
-              ("A new %s was opened on tab page %d!")
-              :format(view.class:name(), view.tabpage)
-            )
-          end,
-          file_panel_buf_read = function(bufnr)
-            -- Force override Enter key in file panel
-            vim.keymap.set('n', '<CR>', function()
+            -- Auto focus file panel when opening diffview
+            vim.defer_fn(function()
               local actions = require("diffview.actions")
-              actions.select_entry()
-            end, { buffer = bufnr, desc = "Select file in diffview", noremap = true, silent = true })
-            
-            -- Also map Enter in insert mode
-            vim.keymap.set('i', '<CR>', function()
-              local actions = require("diffview.actions")
-              actions.select_entry()
-            end, { buffer = bufnr, desc = "Select file in diffview", noremap = true, silent = true })
+              actions.focus_files()
+            end, 50)
+
+            -- Optional: Show notification
+            vim.notify("📝 Diffview opened - Use j/k or arrows to navigate files, Enter to select", vim.log.levels.INFO, {
+              timeout = 3000,
+              position = "bottom_right"
+            })
           end,
         },
         keymaps = {
-          disable_defaults = true, -- Disable defaults to avoid conflicts
+          disable_defaults = false, -- IMPORTANT: Keep defaults enabled
           view = {
             -- The `view` bindings are active in the diff buffers, only when the current
             -- tabpage is a Diffview.
@@ -145,62 +158,77 @@ return {
             ["g<C-x>"] = actions.cycle_layout,
             ["[x"] = actions.prev_conflict,
             ["]x"] = actions.next_conflict,
+            ["qq"] = actions.close,
+            ["q"] = actions.close,
           },
           file_panel = {
+            -- Navigation keys
             ["j"] = actions.next_entry,
-            ["<down>"] = actions.next_entry,
             ["k"] = actions.prev_entry,
+            ["<down>"] = actions.next_entry,
             ["<up>"] = actions.prev_entry,
-            ["<cr>"] = actions.select_entry, -- ENTER key to select file
-            ["<Enter>"] = actions.select_entry, -- Alternative ENTER mapping
-            ["<Return>"] = actions.select_entry, -- Another ENTER mapping
+            ["<cr>"] = actions.select_entry,
             ["o"] = actions.select_entry,
-            ["l"] = actions.select_entry,
             ["<2-LeftMouse>"] = actions.select_entry,
+            ["l"] = actions.select_entry,
+            ["<space>"] = actions.select_entry,
+
+            -- File operations
             ["-"] = actions.toggle_stage_entry,
             ["S"] = actions.stage_all,
             ["U"] = actions.unstage_all,
             ["X"] = actions.restore_entry,
-            ["<C-b>"] = actions.scroll_view(-0.25),
-            ["<C-f>"] = actions.scroll_view(0.25),
-            ["<tab>"] = actions.select_next_entry,
-            ["<s-tab>"] = actions.select_prev_entry,
-            ["gf"] = actions.goto_file_edit,
-            ["<C-w><C-f>"] = actions.goto_file_split,
-            ["<C-w>gf"] = actions.goto_file_tab,
+            ["R"] = actions.refresh_files,
+            ["L"] = actions.open_commit_log,
+            ["zo"] = actions.open_fold,
+            ["h"] = actions.close_fold,
+            ["zc"] = actions.close_fold,
+            ["za"] = actions.toggle_fold,
+            ["zR"] = actions.open_all_folds,
+            ["zM"] = actions.close_all_folds,
+
+            -- Other actions
             ["<leader>e"] = actions.focus_files,
             ["<leader>b"] = actions.toggle_files,
             ["g<C-x>"] = actions.cycle_layout,
-            ["[F"] = actions.select_first_entry,
-            ["]F"] = actions.select_last_entry,
-          },
-          file_history_panel = {
-            ["g!"] = actions.options,
-            ["<C-A-d>"] = actions.open_in_diffview,
-            ["y"] = actions.copy_hash,
+            ["[x"] = actions.prev_conflict,
+            ["]x"] = actions.next_conflict,
             ["gf"] = actions.goto_file_edit,
             ["<C-w><C-f>"] = actions.goto_file_split,
             ["<C-w>gf"] = actions.goto_file_tab,
-            ["<leader>e"] = actions.focus_files,
-            ["<leader>b"] = actions.toggle_files,
+            ["i"] = actions.listing_style,
+            ["f"] = actions.toggle_flatten_dirs,
             ["<tab>"] = actions.select_next_entry,
             ["<s-tab>"] = actions.select_prev_entry,
+            ["qq"] = actions.close,
+            ["q"] = actions.close,
+          },
+          file_history_panel = {
+            -- Navigation
             ["j"] = actions.next_entry,
-            ["<down>"] = actions.next_entry,
             ["k"] = actions.prev_entry,
+            ["<down>"] = actions.next_entry,
             ["<up>"] = actions.prev_entry,
             ["<cr>"] = actions.select_entry,
             ["o"] = actions.select_entry,
-            ["l"] = actions.select_entry,
             ["<2-LeftMouse>"] = actions.select_entry,
-            ["<C-b>"] = actions.scroll_view(-0.25),
-            ["<C-f>"] = actions.scroll_view(0.25),
-            ["[F"] = actions.select_first_entry,
-            ["]F"] = actions.select_last_entry,
+
+            -- Other actions
+            ["g!"] = actions.options,
+            ["<C-A-d>"] = actions.open_in_diffview,
+            ["y"] = actions.copy_hash,
+            ["L"] = actions.open_commit_log,
+            ["zR"] = actions.open_all_folds,
+            ["zM"] = actions.close_all_folds,
+            ["<tab>"] = actions.select_next_entry,
+            ["<s-tab>"] = actions.select_prev_entry,
+            ["qq"] = actions.close,
+            ["q"] = actions.close,
           },
           option_panel = {
             ["<tab>"] = actions.select_entry,
             ["q"] = actions.close,
+            ["<cr>"] = actions.select_entry,
           },
         },
       })

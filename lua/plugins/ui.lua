@@ -34,7 +34,7 @@ return {
           light = "latte",
           dark = "mocha",
         },
-        transparent_background = false,
+        transparent_background = true,
         show_end_of_buffer = false,
         term_colors = true,
         dim_inactive = {
@@ -91,8 +91,8 @@ return {
         },
         custom_highlights = {
           -- Custom highlights for better UI
-          Normal = { bg = "#000000" },
-          NormalFloat = { bg = "#0a0a0a" },
+          -- Normal = { bg = "#000000" }, -- Disabled for transparent background
+          -- NormalFloat = { bg = "#0a0a0a" }, -- Disabled for transparent background
           FloatBorder = { fg = "#89b4fa" },
           LineNr = { fg = "#6c7086" },
           CursorLineNr = { fg = "#89b4fa", bold = true },
@@ -148,6 +148,16 @@ return {
         },
       })
       vim.cmd("colorscheme catppuccin")
+
+      -- Force floats to be transparent to match transparent main bg
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        callback = function()
+          for _, group in ipairs({ "NormalFloat", "FloatBorder", "FloatTitle", "Pmenu", "PmenuSel" }) do
+            vim.api.nvim_set_hl(0, group, { bg = "NONE" })
+          end
+        end,
+      })
+      vim.cmd("doautocmd ColorScheme")
     end
   },
 
@@ -299,7 +309,13 @@ return {
     "folke/which-key.nvim",
     event = "VeryLazy",
     config = function()
+      -- Suppress print output during setup
+      local old_print = print
+      print = function() end
+
       require("which-key").setup({
+        notify = false,  -- Disable notification warnings
+        debug = false,   -- Disable debug mode
         plugins = {
           marks = true,
           registers = true,
@@ -326,6 +342,9 @@ return {
           align = "left",
         },
       })
+
+      -- Restore print function
+      print = old_print
     end
   },
   
@@ -375,9 +394,202 @@ return {
     dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify" },
     config = function()
       require("noice").setup({
-        lsp = { override = { ["vim.lsp.util.stylize_markdown"] = true } },
+        lsp = {
+          override = {
+            ["vim.lsp.util.stylize_markdown"] = true,
+            ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+            ["cmp.entry.get_documentation"] = true,  -- Fix cmp documentation warning
+          }
+        },
         presets = { bottom_search = true, command_palette = true },
       })
     end
+  },
+
+  -- Markdown rendering
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    ft = { "markdown", "md" },
+    config = function()
+      require("render-markdown").setup({
+        -- Enable/disable rendering
+        enabled = true,
+        -- Maximum file size to render (in MB)
+        max_file_size = 10.0,
+        -- Render in all modes
+        render_modes = { "n", "c", "t", "i" },
+        -- Anti-conceal settings
+        anti_conceal = {
+          enabled = true,
+        },
+        -- Disable latex to avoid warning
+        latex = {
+          enabled = false,
+        },
+        -- Heading configuration
+        heading = {
+          enabled = true,
+          sign = true,
+          icons = { "󰉫 ", "󰉬 ", "󰉭 ", "󰉮 ", "󰉯 ", "󰉰 " },
+          signs = { "󰌕 " },
+          width = "full",
+          left_margin = 0,
+          left_pad = 0,
+          right_pad = 0,
+          min_width = 0,
+          border = false,
+          border_virtual = false,
+          above = "▄",
+          below = "▀",
+          backgrounds = {
+            "RenderMarkdownH1Bg",
+            "RenderMarkdownH2Bg",
+            "RenderMarkdownH3Bg",
+            "RenderMarkdownH4Bg",
+            "RenderMarkdownH5Bg",
+            "RenderMarkdownH6Bg",
+          },
+          foregrounds = {
+            "RenderMarkdownH1",
+            "RenderMarkdownH2",
+            "RenderMarkdownH3",
+            "RenderMarkdownH4",
+            "RenderMarkdownH5",
+            "RenderMarkdownH6",
+          },
+        },
+        -- Code block configuration
+        code = {
+          enabled = true,
+          sign = true,
+          style = "full",
+          position = "left",
+          language_pad = 0,
+          disable_background = { "diff" },
+          width = "full",
+          left_margin = 0,
+          left_pad = 1,
+          right_pad = 1,
+          min_width = 0,
+          border = "thin",
+          above = "▄",
+          below = "▀",
+          highlight = "RenderMarkdownCode",
+          highlight_inline = "RenderMarkdownCodeInline",
+        },
+        -- Dash configuration
+        dash = {
+          enabled = true,
+          icon = "─",
+          width = "full",
+          highlight = "RenderMarkdownDash",
+        },
+        -- Bullet list configuration
+        bullet = {
+          enabled = true,
+          icons = { "●", "○", "◆", "◇" },
+          left_pad = 0,
+          right_pad = 0,
+          highlight = "RenderMarkdownBullet",
+        },
+        -- Checkbox configuration
+        checkbox = {
+          enabled = true,
+          unchecked = {
+            icon = "󰄱 ",
+            highlight = "RenderMarkdownUnchecked",
+          },
+          checked = {
+            icon = "󰱒 ",
+            highlight = "RenderMarkdownChecked",
+          },
+          custom = {
+            todo = { raw = "[-]", rendered = "󰥔 ", highlight = "RenderMarkdownTodo" },
+            important = { raw = "[!]", rendered = "󰅾 ", highlight = "RenderMarkdownImportant" },
+          },
+        },
+        -- Quote configuration
+        quote = {
+          enabled = true,
+          icon = "▋",
+          repeat_linebreak = false,
+          highlight = "RenderMarkdownQuote",
+        },
+        -- Pipe table configuration
+        pipe_table = {
+          enabled = true,
+          preset = "none",
+          style = "full",
+          cell = "padded",
+          min_width = 0,
+          border = {
+            "│",
+            "─",
+            "│",
+            "│",
+            "┌",
+            "┬",
+            "┐",
+            "├",
+            "┼",
+            "┤",
+            "└",
+            "┴",
+            "┘",
+          },
+          alignment_indicator = "─",
+          head = "RenderMarkdownTableHead",
+          row = "RenderMarkdownTableRow",
+          filler = "RenderMarkdownTableFill",
+        },
+        -- Callout configuration
+        callout = {
+          note = { raw = "[!NOTE]", rendered = "󰋽 Note", highlight = "RenderMarkdownInfo" },
+          tip = { raw = "[!TIP]", rendered = "󰌶 Tip", highlight = "RenderMarkdownSuccess" },
+          important = { raw = "[!IMPORTANT]", rendered = "󰅾 Important", highlight = "RenderMarkdownHint" },
+          warning = { raw = "[!WARNING]", rendered = "󰀪 Warning", highlight = "RenderMarkdownWarn" },
+          caution = { raw = "[!CAUTION]", rendered = "󰳦 Caution", highlight = "RenderMarkdownError" },
+        },
+        -- Link configuration
+        link = {
+          enabled = true,
+          image = "󰥶 ",
+          email = "󰊫 ",
+          hyperlink = "󰌹 ",
+          highlight = "RenderMarkdownLink",
+          custom = {
+            web = { pattern = "^http[s]?://", icon = "󰖟 ", highlight = "RenderMarkdownLink" },
+          },
+        },
+        -- Sign configuration
+        sign = {
+          enabled = true,
+          highlight = "RenderMarkdownSign",
+        },
+        -- Inline highlight configuration
+        inline_highlight = {
+          enabled = true,
+          highlight = "RenderMarkdownCode",
+        },
+        -- File types to render
+        file_types = { "markdown", "md" },
+        -- Presets
+        preset = "none",
+        -- Logging
+        log_level = "error",
+        -- Disable runtime warnings
+        log_runtime = false,
+        -- Injections configuration
+        injections = {},
+        -- Custom handlers
+        custom_handlers = {},
+        -- Overrides for specific languages/buffers
+        overrides = {
+          buftype = {},
+          filetype = {},
+        },
+      })
+    end,
   },
 } 

@@ -94,26 +94,39 @@ return {
     end
   },
 
-  -- Treesitter (Essential languages only)
+  -- Treesitter (main branch API)
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
     event = { "BufReadPost", "BufNewFile" },
-    build = ":TSUpdate",
+    build = function() require("nvim-treesitter").update() end,
     config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "lua", "python", "javascript", "typescript", "tsx", "html", "css", "json", "markdown",
-          "rust", "go", "java", "c", "cpp", "bash", "yaml", "toml", "ruby", "php", "sql"
-        },
-        highlight = { 
-          enable = true,
-          additional_vim_regex_highlighting = false,
-        },
-        indent = { enable = true },
-        autotag = { enable = true },
-        rainbow = { enable = true },
+      local ts = require("nvim-treesitter")
+      ts.setup({})
+
+      local parsers = {
+        "lua", "python", "javascript", "typescript", "tsx", "html", "css", "json", "markdown",
+        "markdown_inline", "rust", "go", "java", "c", "cpp", "bash", "yaml", "toml", "ruby",
+        "php", "sql", "regex", "latex", "scss", "svelte", "typst", "vue", "vim", "vimdoc",
+      }
+      ts.install(parsers)
+
+      -- Map parser -> filetypes for auto highlight/indent on FileType
+      local fts = {}
+      for _, p in ipairs(parsers) do
+        for _, ft in ipairs(vim.treesitter.language.get_filetypes(p) or { p }) do
+          table.insert(fts, ft)
+        end
+      end
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = fts,
+        callback = function(args)
+          pcall(vim.treesitter.start, args.buf)
+          vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end,
       })
-    end
+    end,
   },
 
   -- LSP (Optimized)
@@ -172,7 +185,32 @@ return {
           ["<Tab>"] = cmp.mapping.select_next_item(),
           ["<S-Tab>"] = cmp.mapping.select_prev_item(),
         }),
-        sources = { { name = "nvim_lsp" }, { name = "buffer" }, { name = "path" } }
+        sources = { { name = "nvim_lsp" }, { name = "buffer" }, { name = "path" } },
+        formatting = {
+          fields = { "kind", "abbr", "menu" },
+          format = function(entry, vim_item)
+            vim_item.kind = string.format("%s", vim_item.kind)
+            vim_item.menu = ({
+              nvim_lsp = "[LSP]",
+              buffer = "[Buffer]",
+              path = "[Path]",
+              luasnip = "[Snippet]",
+            })[entry.source.name]
+            return vim_item
+          end,
+        },
+      })
+      
+      -- Configure CMP documentation to work with Noice
+      local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+      cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
+      
+      -- Handle CMP documentation warning
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "CmpDocumentation",
+        callback = function()
+          -- This ensures CMP documentation is handled properly
+        end,
       })
     end
   },
@@ -214,21 +252,47 @@ return {
     end
   },
 
+  -- Open browser plugin
+  {
+    "tyru/open-browser.vim",
+    keys = {
+      { "gx", "<Plug>(openbrowser-smart-search)", mode = {"n", "v"}, desc = "Open URL in browser" },
+      { "<leader>os", "<Plug>(openbrowser-search)", mode = {"n", "v"}, desc = "Search in browser" },
+      { "<leader>oo", "<Plug>(openbrowser-open)", mode = {"n", "v"}, desc = "Open URL" },
+      { "<leader>op", ":execute 'OpenBrowser file://' . expand('%:p')<CR>", desc = "Preview current file in browser" },
+    },
+    cmd = { "OpenBrowser", "OpenBrowserSearch", "OpenBrowserSmartSearch" },
+    config = function()
+      -- Configure default browser (optional)
+      -- vim.g.openbrowser_browser_commands = {
+      --   { name = "open", args = {"{browser}", "{uri}"} },  -- macOS
+      --   { name = "xdg-open", args = {"{uri}"} },           -- Linux
+      --   { name = "start", args = {"", "{uri}"} },          -- Windows
+      -- }
+      
+      -- Configure search engine (default is Google)
+      vim.g.openbrowser_default_search = "google"
+      
+      -- Available search engines
+      vim.g.openbrowser_search_engines = {
+        google = "https://google.com/search?q={query}",
+        github = "https://github.com/search?q={query}",
+        duckduckgo = "https://duckduckgo.com/?q={query}",
+        stackoverflow = "https://stackoverflow.com/search?q={query}",
+      }
+      
+      -- Auto-detect URLs under cursor
+      vim.g.openbrowser_iskeyword = 1
+    end
+  },
+
   -- Code formatting
   {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
     cmd = { "ConformInfo" },
-    keys = {
-      {
-        "<leader>f",
-        function()
-          require("conform").format({ async = true, lsp_fallback = true })
-        end,
-        mode = "",
-        desc = "Format buffer",
-      },
-    },
+    -- Removed keys to avoid conflict with <leader>ff (find files)
+    -- Use <leader>lf for formatting instead (defined in keymaps.lua)
     opts = {
       -- Define formatters
       formatters_by_ft = {
@@ -279,15 +343,7 @@ return {
         },
       },
     },
-    init = function()
-      -- Add keymaps for manual formatting
-      vim.keymap.set("n", "<leader>ff", function()
-        require("conform").format({ async = true, lsp_fallback = true })
-      end, { desc = "Format buffer" })
-      
-      vim.keymap.set("n", "<leader>fF", function()
-        require("conform").format({ async = true, lsp_fallback = true, range = { start = 1, ["end"] = vim.api.nvim_buf_line_count(0) } })
-      end, { desc = "Format entire file" })
-    end,
+    -- Removed init function to avoid conflicts
+    -- Use <leader>lf for formatting (defined in keymaps.lua via LSP section)
   },
 } 
